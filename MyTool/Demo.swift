@@ -87,7 +87,7 @@ enum Demo {
         // 8) Lambda-Vergleich: gleiche Daten, gleiche Features, nur λ anders.
         //    Erwartung: gleiche Genauigkeit und Grenze, deutlich kleinere
         //    Beträge der Entscheidungswerte (stärkere Regularisierung schrumpft |w|).
-        let svmReg = LinearSGDSVM(featureCount: bestSampler.nComponents,
+        var svmReg = LinearSGDSVM(featureCount: bestSampler.nComponents,
                                   lambda: 1e-2, learningRate: 0.05)
         svmReg.fit(zBest, ySigned, epochs: 20, batchSize: 256)
         let predReg = svmReg.predict(zBest)
