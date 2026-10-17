@@ -80,8 +80,10 @@ enum Demo {
         writeVtk(x: xShifted, label: ySigned, decision: decTuned, to: vtkpath + "points.vtk")
 
         // 8) Lambda-Vergleich: gleiche Daten, gleiche Features, nur λ anders.
-        //    Erwartung: gleiche Genauigkeit und Grenze, deutlich kleinere
-        //    Beträge der Entscheidungswerte (stärkere Regularisierung schrumpft |w|).
+        //    Erwartung: gleiche Genauigkeit und Grenze; Beträge der Entscheidungswerte
+        //    nur leicht kleiner. Das |w|-Gleichgewicht (|w| ∝ 1/√λ) stellt sich erst
+        //    über viel längere Trainingshorizonte ein – und die RFF-Features liegen
+        //    alle auf der Einheitssphäre (||z||≈1), was die Skala ohnehin deckelt.
         var svmReg = LinearSGDSVM(featureCount: bestSampler.nComponents,
                                   lambda: 1e-2, learningRate: 0.05)
         svmReg.fit(zBest, ySigned, epochs: 20, batchSize: 256)
