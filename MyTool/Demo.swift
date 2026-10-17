@@ -67,16 +67,39 @@ enum Demo {
         let t3 = Date()
         svm.fit(zBest, ySigned, epochs: 20, batchSize: 256)
         print(String(format: "Training: %.3fs", -t3.timeIntervalSinceNow))
-        // 6) Genauigkeit des getunten Modells (in-sample) – mit zBest, nicht z
+        // 6) Genauigkeit des getunten Modells (in-sample)
         let predBest = svm.predict(zBest)
         predBest.eval()
         let bestCorrect = (predBest * ySigned .> 0).sum().item(Int.self)
         print(String(format: "Trainingsgenauigkeit (getunt): %.1f%%",
                      100.0 * Float(bestCorrect) / Float(n)))
-        // 7) Export für VisIt/ParaView: Punkte mit Label und Entscheidungswert
-        //    Entscheidungswerte des GETUNTEN Modells → Features zBest verwenden
+
+        // 7) Export für VisIt/ParaView: Entscheidungswerte des GETUNTEN Modells,
+        //    inkl. Min/Max für die Colormap-Einstellung in ParaView.
+        let decTuned = svm.decisionFunction(zBest)
+        decTuned.eval()
+        print(String(format: "Entscheidungswerte (λ=1e-4): min=%.2f, max=%.2f",
+                     decTuned.min().item(Float.self),
+                     decTuned.max().item(Float.self)))
         let vtkfile = NSHomeDirectory() + "/Desktop/points.vtk"
-        writeVtk(x: xShifted, label: ySigned, decision: svm.decisionFunction(zBest),
-                 to: vtkfile)
+        writeVtk(x: xShifted, label: ySigned, decision: decTuned, to: vtkfile)
+
+        // 8) Lambda-Vergleich: gleiche Daten, gleiche Features, nur λ anders.
+        //    Erwartung: gleiche Genauigkeit und Grenze, deutlich kleinere
+        //    Beträge der Entscheidungswerte (stärkere Regularisierung schrumpft |w|).
+        let svmReg = LinearSGDSVM(featureCount: bestSampler.nComponents,
+                                  lambda: 1e-2, learningRate: 0.05)
+        svmReg.fit(zBest, ySigned, epochs: 20, batchSize: 256)
+        let predReg = svmReg.predict(zBest)
+        predReg.eval()
+        let accReg = 100.0 * Float((predReg * ySigned .> 0).sum().item(Int.self)) / Float(n)
+        let decReg = svmReg.decisionFunction(zBest)
+        decReg.eval()
+        print(String(format: "λ=1e-2: Genauigkeit=%.1f%%, min=%.2f, max=%.2f",
+                     accReg,
+                     decReg.min().item(Float.self),
+                     decReg.max().item(Float.self)))
+        writeVtk(x: xShifted, label: ySigned, decision: decReg,
+                 to: NSHomeDirectory() + "/Desktop/points_lambda1e-2.vtk")
     }
 }

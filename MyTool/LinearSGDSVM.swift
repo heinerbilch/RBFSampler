@@ -24,16 +24,16 @@ import MLXRandom
 struct LinearSGDSVM {
     /// The weight vector of shape 1 × m, where m is the number of features.
     var w: MLXArray
-    
+
     /// The bias term of shape 1 × 1.
     var b: MLXArray
-    
+
     /// The regularization parameter for L2 regularization.
     let lambda: Float
-    
+
     /// The learning rate for the SGD optimizer.
     var learningRate: Float
-    
+
     /// Initializes a new `LinearSGDSVM` instance.
     ///
     /// - Parameters:
@@ -54,15 +54,18 @@ struct LinearSGDSVM {
     ///   - y: The label vector of shape n × 1, where the labels are in {-1, +1}.
     ///   - epochs: The number of training epochs. Defaults to 20.
     ///   - batchSize: The size of each mini-batch. Defaults to 256.
+    ///   - seed: Seed für die Batch-Reihenfolge (pro Epoche unterschiedlich,
+    ///     deterministisch über Läufe). Defaults to 42.
     mutating func fit(_ x: MLXArray, _ y: MLXArray,
-                      epochs: Int = 20, batchSize: Int = 256) {
+                      epochs: Int = 20, batchSize: Int = 256, seed: UInt64 = 42) {
         let n = x.shape[0]
 
-        for _ in 0..<epochs {
+        for epoch in 0..<epochs {
             // Zufällige Reihenfolge: Permutation als Index-Array,
-            // Indizes selbst kommen vom CPU-RNG (deterministisch egal hier).
+            // deterministisch über den SeededRNG (Seed variiert pro Epoche).
+            var rngE = SeededRNG(seed: seed &+ UInt64(epoch))
             var order = Array(0..<n)
-            order.shuffle()
+            order.shuffle(using: &rngE)
             let idx = MLXArray(order.map { Int32($0) })
 
             let xShuffled = x[idx]   // n×m (Advanced Indexing)
