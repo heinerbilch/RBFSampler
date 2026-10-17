@@ -13,6 +13,7 @@ import MLXRandom
 @main
 enum Demo {
     static func main() {
+        let vtkpath = NSHomeDirectory() + "/Desktop/"
         // 1) Synthetische Daten: zwei Gauß-Blobs
         MLXRandom.seed(1234)
         let n = 20_000, d = 32
@@ -21,13 +22,8 @@ enum Demo {
         let ySigned = y.asType(.float32) * 2 - 1
         let xShifted = x + ySigned * 0.8   // Blobs um ±0.8 verschoben
 
-        // 1b) Testmenge plotten (erste zwei Dimensionen, interaktives HTML)
-        let plotfile = NSHomeDirectory() + "/Desktop/scatter.html"
-        plotScatter(x: xShifted, label: ySigned, to: plotfile)
-
         // 2) RBF-Features (GPU)
         let t0 = Date()
-//        let sampler = RBFSamplerMLX(dimension: d, nComponents: 500, gamma: 0.5, seed: 42)
         let sampler = RBFSamplerMLX(dimension: d, nComponents: 500,
                                     gamma: 1.0 / Float(d), seed: 42)
         let z = sampler.transform(xShifted)
@@ -81,8 +77,7 @@ enum Demo {
         print(String(format: "Entscheidungswerte (λ=1e-4): min=%.2f, max=%.2f",
                      decTuned.min().item(Float.self),
                      decTuned.max().item(Float.self)))
-        let vtkfile = NSHomeDirectory() + "/Desktop/points.vtk"
-        writeVtk(x: xShifted, label: ySigned, decision: decTuned, to: vtkfile)
+        writeVtk(x: xShifted, label: ySigned, decision: decTuned, to: vtkpath + "points.vtk")
 
         // 8) Lambda-Vergleich: gleiche Daten, gleiche Features, nur λ anders.
         //    Erwartung: gleiche Genauigkeit und Grenze, deutlich kleinere
@@ -100,6 +95,6 @@ enum Demo {
                      decReg.min().item(Float.self),
                      decReg.max().item(Float.self)))
         writeVtk(x: xShifted, label: ySigned, decision: decReg,
-                 to: NSHomeDirectory() + "/Desktop/points_lambda1e-2.vtk")
+                 to: vtkpath + "points_lambda1e-2.vtk")
     }
 }
