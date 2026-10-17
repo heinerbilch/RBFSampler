@@ -21,7 +21,7 @@ enum Demo {
         let ySigned = y.asType(.float32) * 2 - 1
         let xShifted = x + ySigned * 0.8   // Blobs um ±0.8 verschoben
 
-        // 1b) Testmenge plotten (erste zwei Dimensionen, SVG)
+        // 1b) Testmenge plotten (erste zwei Dimensionen, interaktives HTML)
         let plotfile = NSHomeDirectory() + "/Desktop/scatter.html"
         plotScatter(x: xShifted, label: ySigned, to: plotfile)
 
@@ -56,7 +56,8 @@ enum Demo {
         let best = tuneGamma(x: xShifted, y: ySigned, nComponents: 500)
         // RBF
         let t2 = Date()
-        let bestSampler = RBFSamplerMLX(dimension: d, nComponents: 500, gamma: best.gamma)
+        let bestSampler = RBFSamplerMLX(dimension: d, nComponents: 500,
+                                        gamma: best.gamma, seed: 42)
         let zBest = bestSampler.transform(xShifted)
         zBest.eval()
         print(String(format: "Feature-Map: %d×%d → %d×%d in %.3fs",
@@ -66,15 +67,16 @@ enum Demo {
         let t3 = Date()
         svm.fit(zBest, ySigned, epochs: 20, batchSize: 256)
         print(String(format: "Training: %.3fs", -t3.timeIntervalSinceNow))
-        // 4) Genauigkeit (in-sample Sanity-Check)
-        let predBest = svm.predict(z)
+        // 6) Genauigkeit des getunten Modells (in-sample) – mit zBest, nicht z
+        let predBest = svm.predict(zBest)
         predBest.eval()
         let bestCorrect = (predBest * ySigned .> 0).sum().item(Int.self)
-        print(String(format: "Trainingsgenauigkeit: %.1f%%",
+        print(String(format: "Trainingsgenauigkeit (getunt): %.1f%%",
                      100.0 * Float(bestCorrect) / Float(n)))
-        // 6) Export für VisIt/ParaView: Punkte mit Label und Entscheidungswert
+        // 7) Export für VisIt/ParaView: Punkte mit Label und Entscheidungswert
+        //    Entscheidungswerte des GETUNTEN Modells → Features zBest verwenden
         let vtkfile = NSHomeDirectory() + "/Desktop/points.vtk"
-        writeVtk(x: xShifted, label: ySigned, decision: svm.decisionFunction(z),
+        writeVtk(x: xShifted, label: ySigned, decision: svm.decisionFunction(zBest),
                  to: vtkfile)
     }
 }
