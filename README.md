@@ -10,11 +10,11 @@ auf der GPU läuft.
 
 ## Struktur
 
-- Sources/RBFToolkit – Bibliothek: RBFSamplerMLX, LinearSGDSVM,
+- Sources/RBFToolkit – Bibliothek: RBFSamplerMLX, LinearSGDSVM, makeBlobs,
   k-fold-CrossValidate, gamma-Tuning (Plateau-Logik), Exporte (VTK für ParaView,
-  interaktives HTML via Plotly)
-- Sources/RBFToolkitDemo – Kommandozeilen-Demo: synthetische Daten, Training,
-  gamma-Tuning, lambda-Vergleich, VTK-Export
+  interaktives HTML via Plotly), RBFSampler-Visualisierungen
+- Sources/RBFToolkitDemo – Experimente als CLI (pipeline, visuals):
+  Protokoll + Registry, jedes Experiment eine eigene Datei
 - Tests/RBFToolkitTests – Korrektheit (Feature-Map gegen CPU-Nachrechnung),
   Kernel-Näherung (z(x)·z(x') ≈ e^{-gamma||x-x'||²}), Reproduzierbarkeit
   (gleiche Seeds → identische Gewichte)
@@ -22,8 +22,10 @@ auf der GPU läuft.
 
 ## Nutzung
 
-swift run RBFToolkitDemo    # Demo (schreibt VTK/HTML auf den Desktop)
-swift test                  # Test-Suite
-open Package.swift          # Paket in Xcode öffnen
+swift run RBFToolkitDemo               # Liste der Experimente
+swift run RBFToolkitDemo pipeline      # Pipeline (schreibt VTK/HTML auf den Desktop)
+swift run RBFToolkitDemo visuals       # RBFSampler-Visualisierungen
+swift test                             # Test-Suite
+open Package.swift                     # Paket in Xcode öffnen
 
 Voraussetzung: macOS 14+ auf Apple Silicon (MLX braucht Metal).
