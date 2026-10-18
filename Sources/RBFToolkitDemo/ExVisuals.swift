@@ -1,3 +1,4 @@
+
 //
 //  ExVisuals.swift
 //  RBFToolkitDemo
@@ -10,25 +11,50 @@ import RBFToolkit
 
 // MARK: - Experiment: Visuals
 
-/// Die RBFSampler-Erklärstücke: Wellen für zwei gamma-Werte, Wellenfeld
-/// für ParaView, und die Kernel-Näherung gegen den exakten Gauß-Kernel.
+/// Die RBFSampler-Erklärstücke, einzeln oder komplett. Ohne Schritt-Argument
+/// läuft alles; mit Schritten nur die benannten – zum schnellen Iterieren,
+/// ohne jedes Mal alle Ausgaben neu zu erzeugen.
 struct Visuals: Experiment {
     static let name = "visuals"
-    static let about = "RBFSampler-Visualisierungen: Wellen, Wellenfeld, Kernel-Näherung"
+    static let about = "Visualisierungen: waves field kernel omega boundary components (ohne Argument: alle)"
 
     init() {}
 
-    func run() throws {
-        // 1) Wellen: gamma-Effekt direkt sichtbar (langsam vs. schnell)
-        plotRbfWaves(gamma: 0.05, to: desktopPath("waves_small_gamma.html"))
-        plotRbfWaves(gamma: 2.0, to: desktopPath("waves_large_gamma.html"))
+    private static let steps: [(name: String, about: String)] = [
+        ("waves", "1D-Wellen: gamma klein vs. gross"),
+        ("field", "2D-Wellenfeld (VTK) für ParaView"),
+        ("kernel", "Kernel-Näherung gegen den exakten Gauß-Kernel"),
+        ("omega", "Frequenzraum: gezogene Wellenvektoren"),
+        ("boundary", "Entscheidungslandschaft: Grenze + Marge"),
+        ("components", "Fehlerkurve über m mit 1/sqrt(m)-Referenz")
+    ]
 
-        // 2) Eine Komponente als 2D-Wellenfeld für ParaView
-        writeVtkWaveField(gamma: 0.25, to: desktopPath("wave.vtk"))
+    func run(steps: [String]) throws {
+        let toRun = steps.isEmpty ? Visuals.steps.map { $0.name } : steps
+        for s in toRun { try runStep(s) }
+    }
 
-        // 3) Kernel-Näherung auf den Demo-Blobs; gamma=0.003 ist der Wert,
-        //    den das Pipeline-Experiment per CV-Tuning findet.
-        let (x, _) = makeBlobs(n: 20_000, d: 32)
-        plotKernelApprox(x: x, gamma: 0.003, to: desktopPath("kernel_approx.html"))
+    private func runStep(_ step: String) throws {
+        switch step {
+        case "waves":
+            plotRbfWaves(gamma: 0.05, to: desktopPath("waves_small_gamma.html"))
+            plotRbfWaves(gamma: 2.0, to: desktopPath("waves_large_gamma.html"))
+        case "field":
+            writeVtkWaveField(gamma: 0.25, to: desktopPath("wave.vtk"))
+        case "kernel":
+            let (x, _) = makeBlobs(n: 20_000, d: 32)
+            plotKernelApprox(x: x, gamma: 0.003, to: desktopPath("kernel_approx.html"))
+        case "omega":
+            plotOmegaCloud(to: desktopPath("omega_cloud.html"))
+        case "boundary":
+            plotDecisionLandscape(gamma: 0.05, to: desktopPath("boundary_small_gamma.html"))
+            plotDecisionLandscape(gamma: 2.0, to: desktopPath("boundary_large_gamma.html"))
+        case "components":
+            let (x, _) = makeBlobs(n: 20_000, d: 32)
+            plotComponentCurve(x: x, gamma: 0.003, to: desktopPath("component_curve.html"))
+        default:
+            print("Unbekannter Schritt: " + step + ". Verfügbare Schritte:")
+            for s in Visuals.steps { print("  " + s.name + "  –  " + s.about) }
+        }
     }
 }

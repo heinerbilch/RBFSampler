@@ -1,3 +1,4 @@
+
 //
 //  ExPipeline.swift
 //  RBFToolkitDemo
@@ -10,14 +11,15 @@ import RBFToolkit
 
 // MARK: - Experiment: Pipeline
 
-/// Der komplette Ablauf: Features → Training → gamma-Tuning → λ-Vergleich → Export.
+/// Der komplette Ablauf: Features -> Training -> gamma-Tuning -> λ-Vergleich -> Export.
+/// Kennt keine Einzelschritte – sie läuft immer komplett.
 struct Pipeline: Experiment {
     static let name = "pipeline"
     static let about = "Blobs → Feature-Map → SVM → gamma-Tuning → λ-Vergleich → VTK-Export"
 
     init() {}
 
-    func run() throws {
+    func run(steps: [String]) throws {
         // 1) Synthetische Daten: zwei Gauß-Blobs
         let (xShifted, ySigned) = makeBlobs(n: 20_000, d: 32)
         let n = xShifted.shape[0]

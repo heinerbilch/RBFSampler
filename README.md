@@ -12,9 +12,11 @@ auf der GPU läuft.
 
 - Sources/RBFToolkit – Bibliothek: RBFSamplerMLX, LinearSGDSVM, makeBlobs,
   k-fold-CrossValidate, gamma-Tuning (Plateau-Logik), Exporte (VTK für ParaView,
-  interaktives HTML via Plotly), RBFSampler-Visualisierungen
+  interaktives HTML via Plotly), RBFSampler-Visualisierungen (Wellen, Wellenfeld,
+  Kernel-Näherung, Frequenzraum, Entscheidungslandschaft, m-Fehlerkurve)
 - Sources/RBFToolkitDemo – Experimente als CLI (pipeline, visuals):
-  Protokoll + Registry, jedes Experiment eine eigene Datei
+  Protokoll + Registry, jedes Experiment eine eigene Datei; visuals kennt
+  Einzelschritte (waves field kernel omega boundary components)
 - Tests/RBFToolkitTests – Korrektheit (Feature-Map gegen CPU-Nachrechnung),
   Kernel-Näherung (z(x)·z(x') ≈ e^{-gamma||x-x'||²}), Reproduzierbarkeit
   (gleiche Seeds → identische Gewichte)
@@ -24,7 +26,8 @@ auf der GPU läuft.
 
 swift run RBFToolkitDemo               # Liste der Experimente
 swift run RBFToolkitDemo pipeline      # Pipeline (schreibt VTK/HTML auf den Desktop)
-swift run RBFToolkitDemo visuals       # RBFSampler-Visualisierungen
+swift run RBFToolkitDemo visuals       # alle Visualisierungen
+swift run RBFToolkitDemo visuals omega # nur ein Schritt: waves field kernel omega boundary components
 swift test                             # Test-Suite
 open Package.swift                     # Paket in Xcode öffnen
 
