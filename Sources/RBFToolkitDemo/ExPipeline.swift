@@ -15,7 +15,7 @@ struct Pipeline: Experiment {
     static let name = "pipeline"
     static let about = "Blobs → Feature-Map → SVM → gamma-Tuning → λ-Vergleich → VTK-Export"
 
-    required init() {}
+    init() {}
 
     func run() throws {
         // 1) Synthetische Daten: zwei Gauß-Blobs

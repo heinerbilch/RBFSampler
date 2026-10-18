@@ -16,7 +16,7 @@ struct Visuals: Experiment {
     static let name = "visuals"
     static let about = "RBFSampler-Visualisierungen: Wellen, Wellenfeld, Kernel-Näherung"
 
-    required init() {}
+    init() {}
 
     func run() throws {
         // 1) Wellen: gamma-Effekt direkt sichtbar (langsam vs. schnell)
