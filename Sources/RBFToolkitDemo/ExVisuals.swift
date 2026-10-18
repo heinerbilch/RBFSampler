@@ -16,7 +16,7 @@ import RBFToolkit
 /// ohne jedes Mal alle Ausgaben neu zu erzeugen.
 struct Visuals: Experiment {
     static let name = "visuals"
-    static let about = "Visualisierungen: waves field kernel omega boundary components (ohne Argument: alle)"
+    static let about = "Visualisierungen: waves field kernel omega boundary surface components (ohne Argument: alle)"
 
     init() {}
 
@@ -26,6 +26,7 @@ struct Visuals: Experiment {
         ("kernel", "Kernel-Näherung gegen den exakten Gauß-Kernel"),
         ("omega", "Frequenzraum: gezogene Wellenvektoren"),
         ("boundary", "Entscheidungslandschaft: Grenze + Marge"),
+        ("surface", "3D-Entscheidungsflaeche (VTK) für ParaView"),
         ("components", "Fehlerkurve über m mit 1/sqrt(m)-Referenz")
     ]
 
@@ -49,6 +50,13 @@ struct Visuals: Experiment {
         case "boundary":
             plotDecisionLandscape(gamma: 0.05, to: desktopPath("boundary_small_gamma.html"))
             plotDecisionLandscape(gamma: 2.0, to: desktopPath("boundary_large_gamma.html"))
+        case "surface":
+            writeVtkDecisionSurface(gamma: 0.05,
+                                    toSurface: desktopPath("surface_small_gamma.vtk"),
+                                    toPoints: desktopPath("surface_points_small_gamma.vtk"))
+            writeVtkDecisionSurface(gamma: 2.0,
+                                    toSurface: desktopPath("surface_large_gamma.vtk"),
+                                    toPoints: desktopPath("surface_points_large_gamma.vtk"))
         case "components":
             let (x, _) = makeBlobs(n: 20_000, d: 32)
             plotComponentCurve(x: x, gamma: 0.003, to: desktopPath("component_curve.html"))
