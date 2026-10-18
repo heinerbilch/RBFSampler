@@ -18,6 +18,7 @@ auf der GPU läuft.
 - Tests/RBFToolkitTests – Korrektheit (Feature-Map gegen CPU-Nachrechnung),
   Kernel-Näherung (z(x)·z(x') ≈ e^{-gamma||x-x'||²}), Reproduzierbarkeit
   (gleiche Seeds → identische Gewichte)
+- docs/ – Projekt-Aufsatz (essay.md) und Logo (logo.svg)
 
 ## Nutzung
 
