@@ -99,5 +99,12 @@ enum Demo {
                      decReg.max().item(Float.self)))
         writeVtk(x: xShifted, label: ySigned, decision: decReg,
                  to: vtkpath + "points_lambda1e-2.vtk")
+
+        // 9) RBFSampler verstehen: Wellen (gamma-Effekt), Wellenfeld (ParaView),
+        //    und der Beweis, dass z(x)·z(x') den Gauß-Kernel rekonstruiert.
+        plotRbfWaves(gamma: 0.05, to: vtkpath + "waves_small_gamma.html")
+        plotRbfWaves(gamma: 2.0, to: vtkpath + "waves_large_gamma.html")
+        writeVtkWaveField(gamma: 0.25, to: vtkpath + "wave.vtk")
+        plotKernelApprox(x: xShifted, gamma: best.gamma, to: vtkpath + "kernel_approx.html")
     }
 }
