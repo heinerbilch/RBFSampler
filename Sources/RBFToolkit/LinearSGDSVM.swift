@@ -58,50 +58,69 @@ public struct LinearSGDSVM {
     ///     deterministisch über Läufe). Defaults to 42.
     public mutating func fit(_ x: MLXArray, _ y: MLXArray,
                       epochs: Int = 20, batchSize: Int = 256, seed: UInt64 = 42) {
+        for epoch in 0..<epochs {
+            fitEpoch(x, y, epoch: epoch, batchSize: batchSize, seed: seed)
+        }
+    }
+
+    /// Trains exactly one epoch of mini-batch SGD.
+    ///
+    /// Öffentliche Einzel-Epoche für Zeitsequenzen (siehe writeVtkEpochAnimation):
+    /// fit mit epochs = N ist bit-identisch zu N aufeinanderfolgenden
+    /// fitEpoch-Aufrufen mit epoch = 0 … N-1 – gleicher Seed, gleiche
+    /// Batch-Reihenfolge, gleiches Modell. Der Repro-Test
+    /// testFitEqualsSequentialFitEpochs sichert das ab.
+    ///
+    /// - Parameters:
+    ///   - x: The feature matrix of shape n × m, where n is the number of samples.
+    ///   - y: The label vector of shape n × 1, where the labels are in {-1, +1}.
+    ///   - epoch: Epochen-Index (0-basiert), bestimmt den Permutations-Seed.
+    ///   - batchSize: The size of each mini-batch. Defaults to 256.
+    ///   - seed: Seed für die Batch-Reihenfolge. Defaults to 42.
+    public mutating func fitEpoch(_ x: MLXArray, _ y: MLXArray,
+                          epoch: Int, batchSize: Int = 256, seed: UInt64 = 42) {
         let n = x.shape[0]
 
-        for epoch in 0..<epochs {
-            // Zufällige Reihenfolge: Permutation als Index-Array,
-            // deterministisch über den SeededRNG (Seed variiert pro Epoche).
-            var rngE = SeededRNG(seed: seed &+ UInt64(epoch))
-            var order = Array(0..<n)
-            order.shuffle(using: &rngE)
-            let idx = MLXArray(order.map { Int32($0) })
+        // Zufällige Reihenfolge: Permutation als Index-Array,
+        // deterministisch über den SeededRNG (Seed variiert pro Epoche).
+        var rngE = SeededRNG(seed: seed &+ UInt64(epoch))
+        var order = Array(0..<n)
+        order.shuffle(using: &rngE)
+        let idx = MLXArray(order.map { Int32($0) })
 
-            let xShuffled = x[idx]   // n×m (Advanced Indexing)
-            let yShuffled = y[idx]  // n×1
+        let xShuffled = x[idx]   // n×m (Advanced Indexing)
+        let yShuffled = y[idx]  // n×1
 
-            var start = 0
-            while start < n {
-                let end = min(start + batchSize, n)
-                let rows = end - start
+        var start = 0
+        while start < n {
+            let end = min(start + batchSize, n)
+            let rows = end - start
 
-                // Slices sind Views – keine Kopien von Hand nötig.
-                let xb = xShuffled[start..<end]          // rows×m
-                let yb = yShuffled[start..<end]          // rows×1
+            // Slices sind Views – keine Kopien von Hand nötig.
+            let xb = xShuffled[start..<end]          // rows×m
+            let yb = yShuffled[start..<end]          // rows×1
 
-                // scores = xb @ wᵀ + b          → rows×1
-                let scores = matmul(xb, w.T) + b
-                let margins = scores * yb               // y * score
-                let active = (margins .< 1).asType(.float32)  // 1{margin<1}
+            // scores = xb @ wᵀ + b          → rows×1
+            let scores = matmul(xb, w.T) + b
+            let margins = scores * yb               // y * score
+            let active = (margins .< 1).asType(.float32)  // 1{margin<1}
 
-                // grad_w = λw - (2/rows) * Σ active*y*xb
-                let ay = active * yb                     // rows×1
-                let dataTerm = matmul(ay.T, xb) * (2.0 / Float(rows))
-                let gradW = w * lambda - dataTerm
+            // grad_w = λw - (2/rows) * Σ active*y*xb
+            let ay = active * yb                     // rows×1
+            let dataTerm = matmul(ay.T, xb) * (2.0 / Float(rows))
+            let gradW = w * lambda - dataTerm
 
-                // grad_b = -(2/rows) * Σ active*y
-                let gradB = -sum(ay) * (2.0 / Float(rows))
+            // grad_b = -(2/rows) * Σ active*y
+            let gradB = -sum(ay) * (2.0 / Float(rows))
 
-                w = w - gradW * learningRate
-                b = b - gradB * learningRate
-                start = end
-            }
-            // Pro Epoche auswerten: haelt den lazy Graph flach, sonst waechst
-            // er ueber alle Iterationen und der Speicher laeuft voll.
-            w.eval()
-            b.eval()
+            w = w - gradW * learningRate
+            b = b - gradB * learningRate
+            start = end
         }
+        // Pro Epoche auswerten: haelt den lazy Graph flach, sonst waechst
+        // er ueber alle Iterationen und der Speicher laeuft voll.
+        w.eval()
+        b.eval()
     }
 
     /// Computes the decision function f(x) = x·wᵀ + b for the input features.

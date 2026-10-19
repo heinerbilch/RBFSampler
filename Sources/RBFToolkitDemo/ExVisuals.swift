@@ -1,4 +1,3 @@
-
 //
 //  ExVisuals.swift
 //  RBFToolkitDemo
@@ -16,7 +15,7 @@ import RBFToolkit
 /// ohne jedes Mal alle Ausgaben neu zu erzeugen.
 struct Visuals: Experiment {
     static let name = "visuals"
-    static let about = "Visualisierungen: waves field kernel omega boundary surface components (ohne Argument: alle)"
+    static let about = "Visualisierungen: waves field kernel omega boundary surface epochs components (ohne Argument: alle)"
 
     init() {}
 
@@ -27,6 +26,7 @@ struct Visuals: Experiment {
         ("omega", "Frequenzraum: gezogene Wellenvektoren"),
         ("boundary", "Entscheidungslandschaft: Grenze + Marge"),
         ("surface", "3D-Entscheidungsflaeche (VTK) für ParaView"),
+        ("epochs", "Trainingsepochen als VTK-Zeitsequenz (ParaView-Animation)"),
         ("components", "Fehlerkurve über m mit 1/sqrt(m)-Referenz")
     ]
 
@@ -57,6 +57,11 @@ struct Visuals: Experiment {
             writeVtkDecisionSurface(gamma: 2.0,
                                     toSurface: desktopPath("surface_large_gamma.vtk"),
                                     toPoints: desktopPath("surface_points_large_gamma.vtk"))
+        case "epochs":
+            writeVtkEpochAnimation(gamma: 0.05,
+                                   toDirectory: desktopPath("epoch_anim_small_gamma"))
+            writeVtkEpochAnimation(gamma: 2.0,
+                                   toDirectory: desktopPath("epoch_anim_large_gamma"))
         case "components":
             let (x, _) = makeBlobs(n: 20_000, d: 32)
             plotComponentCurve(x: x, gamma: 0.003, to: desktopPath("component_curve.html"))
