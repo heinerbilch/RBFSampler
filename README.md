@@ -12,19 +12,19 @@ auf der GPU läuft.
 
 - Sources/RBFToolkit – Bibliothek: RBFSamplerMLX, LinearSGDSVM (fit + fitEpoch),
   Datensätze (synthetische Blobs, WDBC-CSV-Lader), Vorverarbeitung
-  (Standardisierung, deterministischer Train/Test-Split), k-fold-CrossValidate,
-  gamma-Tuning (Plateau-Logik), Exporte (VTK für ParaView, interaktives HTML
-  via Plotly), RBFSampler-Visualisierungen (Wellen, Wellenfeld, Kernel-Näherung,
-  Frequenzraum, Entscheidungslandschaft, 3D-Entscheidungsfläche,
-  Epochen-Zeitsequenz, m-Fehlerkurve)
+  (Standardisierung, deterministischer Train/Test-Split), PCA per Potenzmethode,
+  k-fold-CrossValidate, gamma-Tuning (Plateau-Logik), Exporte (VTK für ParaView,
+  interaktives HTML via Plotly), RBFSampler-Visualisierungen (Wellen, Wellenfeld,
+  Kernel-Näherung, Frequenzraum, Entscheidungslandschaft, 3D-Entscheidungsfläche,
+  Epochen-Zeitsequenz, m-Fehlerkurve), WDBC-Entscheidungsfläche in der PCA-Ebene
 - Sources/RBFToolkitDemo – Experimente als CLI (pipeline, visuals, cancer):
   Protokoll + Registry, jedes Experiment eine eigene Datei; visuals kennt
   Einzelschritte (waves field kernel omega boundary surface epochs components),
-  cancer ebenfalls (data tune run)
+  cancer ebenfalls (data tune surface run)
 - Tests/RBFToolkitTests – Korrektheit (Feature-Map gegen CPU-Nachrechnung),
   Kernel-Näherung (z(x)·z(x') ≈ e^-gamma·||x-x'||²), Reproduzierbarkeit
   (gleiche Seeds → identische Gewichte, fit == fitEpoch), Vorverarbeitung
-  (Standardizer, Split, CSV-Lader)
+  (Standardizer, Split, CSV-Lader), PCA (Potenzmethode)
 - docs/ – Projekt-Aufsatz (essay.md) und Logo (logo.svg)
 - data/ – WDBC-Datensatz (wdbc.data, einmalig per curl geladen, siehe data/)
 
@@ -36,6 +36,7 @@ swift run RBFToolkitDemo visuals       # alle Visualisierungen
 swift run RBFToolkitDemo visuals omega # nur ein Schritt: waves field kernel omega boundary surface epochs components
 swift run RBFToolkitDemo cancer data   # WDBC laden: Zeilen, Klassen, Merkmals-Skalen
 swift run RBFToolkitDemo cancer        # Split → Standardisierung → gamma-Tuning → Test vs. lineare Baseline → m-Sweep
+swift run RBFToolkitDemo cancer surface  # PCA-Ebene des 30D-RFF-Modells als VTK für ParaView
 swift test                             # Test-Suite
 open Package.swift                     # Paket in Xcode öffnen
 

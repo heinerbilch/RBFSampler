@@ -24,7 +24,7 @@ import RBFToolkit
 /// Grenze wirklich nichtlinear ist.
 struct Cancer: Experiment {
     static let name = "cancer"
-    static let about = "WDBC (echte Daten): CSV-Lader → Split → Standardisierung → gamma-Tuning → Test vs. lineare Baseline (Schritte: data tune run)"
+    static let about = "WDBC (echte Daten): CSV-Lader → Split → Standardisierung → gamma-Tuning → Test vs. lineare Baseline (Schritte: data tune surface run)"
 
     init() {}
 
@@ -46,6 +46,7 @@ struct Cancer: Experiment {
     private static let steps: [(name: String, about: String)] = [
         ("data", "CSV laden: Zeilen, Klassenverteilung, Merkmals-Skalen"),
         ("tune", "Split → Standardisierung → gamma-Tuning auf Trainings-CV"),
+        ("surface", "PCA-Ebene des 30D-RFF-Modells als VTK für ParaView"),
         ("run", "Kompletter Durchlauf: Baseline, RFF-Test, m-Sweep")
     ]
 
@@ -60,6 +61,10 @@ struct Cancer: Experiment {
             try runData()
         case "tune":
             try runTune()
+        case "surface":
+            try writeVtkWDBCSurface(gamma: 0.01,
+                                    toSurface: desktopPath("wdbc_surface.vtk"),
+                                    toPoints: desktopPath("wdbc_points.vtk"))
         case "run":
             try runAll()
         default:
