@@ -32,6 +32,17 @@ struct Cancer: Experiment {
     private static let gammaGrid: [Float] = [0.0001, 0.0003, 0.001, 0.003,
                                              0.01, 0.03, 0.1, 0.3, 1.0, 3.0]
 
+    /// Trainings-Budget: WDBC hat nur ~400 Trainingspunkte – mit batchSize 256
+    /// wären das 2 Gradientenschritte pro Epoche, 40 insgesamt. Das war zu
+    /// wenig: das RFF-Modell kollabierte auf die Mehrheitsklasse (63.7% =
+    /// Klassenanteil der benignen Punkte), während die lineare Baseline mit
+    /// denselben 40 Schritten 98% erreichte – rohe Merkmale fassen das Signal
+    /// direkter, RFF-Gewichte müssen es sich über viel mehr Schritte aus
+    /// 500 annähernd rauschenden Koordinaten herausziehen. Kleine Batches
+    /// geben mehr Schritte pro Epoche, mehr Epochen mehr Budget.
+    private static let epochs = 300
+    private static let batchSize = 32
+
     private static let steps: [(name: String, about: String)] = [
         ("data", "CSV laden: Zeilen, Klassenverteilung, Merkmals-Skalen"),
         ("tune", "Split → Standardisierung → gamma-Tuning auf Trainings-CV"),
@@ -97,7 +108,10 @@ struct Cancer: Experiment {
     private func runTune() throws {
         let (sTrain, yTrain, _, _) = try prepared()
         print("Trainings-Split standardisiert (mean/std nur aus Train, Test unverarbeitet beiseite).")
-        let best = tuneGamma(x: sTrain, y: yTrain, nComponents: 500, grid: Cancer.gammaGrid)
+        print(String(format: "Trainings-Budget: %d Epochen, Batch %d.", Cancer.epochs, Cancer.batchSize))
+        let best = tuneGamma(x: sTrain, y: yTrain, nComponents: 500,
+                             grid: Cancer.gammaGrid,
+                             epochs: Cancer.epochs, batchSize: Cancer.batchSize)
         print(String(format: "Gewähltes gamma: %.4f (CV-Score %.3f)", best.gamma, best.score))
     }
 
@@ -109,15 +123,19 @@ struct Cancer: Experiment {
 
         // 1) Lineare Baseline: dieselbe SVM direkt auf den 30 standardisierten
         //    Merkmalen, ohne Kernel-Trick. Der Vergleichspunkt: Was kauft RFF?
+        //    Dasselbe Budget wie das RFF-Modell – sonst wäre der Vergleich
+        //    ein Artefakt der Trainingsdauer.
         var lin = LinearSGDSVM(featureCount: d, lambda: 1e-4, learningRate: 0.05)
-        lin.fit(sTrain, yTrain, epochs: 20, batchSize: 256)
+        lin.fit(sTrain, yTrain, epochs: Cancer.epochs, batchSize: Cancer.batchSize)
         let linPred = lin.predict(sTest)
         linPred.eval()
         let linAcc = 100.0 * Float((linPred * yTest .> 0).sum().item(Int.self)) / Float(nTest)
         print(String(format: "Lineare Baseline (kein Kernel): Test-Genauigkeit %.1f%%", linAcc))
 
-        // 2) gamma-Tuning NUR auf der Trainings-CV
-        let best = tuneGamma(x: sTrain, y: yTrain, nComponents: 500, grid: Cancer.gammaGrid)
+        // 2) gamma-Tuning NUR auf der Trainings-CV, mit demselben Budget
+        let best = tuneGamma(x: sTrain, y: yTrain, nComponents: 500,
+                             grid: Cancer.gammaGrid,
+                             epochs: Cancer.epochs, batchSize: Cancer.batchSize)
 
         // 3) Finales RFF-Modell: Features von Train und Test durch denselben
         //    Sampler (W, b sind gamma/d-Parameter, kein Fit auf Daten).
@@ -125,7 +143,7 @@ struct Cancer: Experiment {
                                     gamma: best.gamma, seed: 42)
         let zTrain = sampler.transform(sTrain)
         var svm = LinearSGDSVM(featureCount: 500, lambda: 1e-4, learningRate: 0.05)
-        svm.fit(zTrain, yTrain, epochs: 20, batchSize: 256)
+        svm.fit(zTrain, yTrain, epochs: Cancer.epochs, batchSize: Cancer.batchSize)
         let zTest = sampler.transform(sTest)
         let pred = svm.predict(zTest)
         pred.eval()
@@ -142,7 +160,7 @@ struct Cancer: Experiment {
             let s = RBFSamplerMLX(dimension: d, nComponents: m, gamma: best.gamma, seed: 42)
             let zTr = s.transform(sTrain)
             var sv = LinearSGDSVM(featureCount: m, lambda: 1e-4, learningRate: 0.05)
-            sv.fit(zTr, yTrain, epochs: 20, batchSize: 256)
+            sv.fit(zTr, yTrain, epochs: Cancer.epochs, batchSize: Cancer.batchSize)
             let p = sv.predict(s.transform(sTest))
             p.eval()
             let a = 100.0 * Float((p * yTest .> 0).sum().item(Int.self)) / Float(nTest)

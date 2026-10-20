@@ -13,13 +13,22 @@ import MLX
 /// (links Unterfitting, rechts Kernel-Rauschen) – andernfalls verbreitern.
 /// Ties werden nicht per "erster Treffer" gelöst, sondern über die
 /// geometrische Mitte des Plateaus (robust gegen Randlagen).
+/// epochs/batchSize/learningRate/lambda werden an crossValidate
+/// durchgereicht: Tuning und finales Modell müssen mit demselben
+/// Budget trainieren, sonst vergleicht das Grid untertrainierte
+/// Modelle – also Rauschen.
 public func tuneGamma(x: MLXArray, y: MLXArray, nComponents: Int,
                grid: [Float] = [0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1.0],
-               folds: Int = 5, tolerance: Float = 0.002) -> (gamma: Float, score: Float) {
+               folds: Int = 5, tolerance: Float = 0.002,
+               epochs: Int = 20, batchSize: Int = 256,
+               learningRate: Float = 0.05, lambda: Float = 1e-4)
+    -> (gamma: Float, score: Float) {
     precondition(grid == grid.sorted(), "Grid muss aufsteigend sortiert sein")
     var results: [(gamma: Float, score: Float)] = []
     for g in grid {
-        let s = crossValidate(x: x, y: y, gamma: g, nComponents: nComponents, folds: folds)
+        let s = crossValidate(x: x, y: y, gamma: g, nComponents: nComponents,
+                              folds: folds, epochs: epochs, batchSize: batchSize,
+                              learningRate: learningRate, lambda: lambda)
         print(String(format: "gamma=%.4f  CV-Genauigkeit=%.3f", g, s))
         results.append((g, s))
     }
