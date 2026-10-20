@@ -1,4 +1,3 @@
-
 //
 //  Experiments.swift
 //  RBFToolkitDemo
@@ -23,7 +22,8 @@ protocol Experiment {
 enum Experiments {
     static let all: [any Experiment.Type] = [
         Pipeline.self,
-        Visuals.self
+        Visuals.self,
+        Cancer.self
     ]
 
     static func main() {

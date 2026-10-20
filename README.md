@@ -10,26 +10,39 @@ auf der GPU läuft.
 
 ## Struktur
 
-- Sources/RBFToolkit – Bibliothek: RBFSamplerMLX, LinearSGDSVM, makeBlobs,
-  k-fold-CrossValidate, gamma-Tuning (Plateau-Logik), Exporte (VTK für ParaView,
-  interaktives HTML via Plotly), RBFSampler-Visualisierungen (Wellen, Wellenfeld,
-  Kernel-Näherung, Frequenzraum, Entscheidungslandschaft, 3D-Entscheidungsfläche,
-  m-Fehlerkurve)
-- Sources/RBFToolkitDemo – Experimente als CLI (pipeline, visuals):
+- Sources/RBFToolkit – Bibliothek: RBFSamplerMLX, LinearSGDSVM (fit + fitEpoch),
+  Datensätze (synthetische Blobs, WDBC-CSV-Lader), Vorverarbeitung
+  (Standardisierung, deterministischer Train/Test-Split), k-fold-CrossValidate,
+  gamma-Tuning (Plateau-Logik), Exporte (VTK für ParaView, interaktives HTML
+  via Plotly), RBFSampler-Visualisierungen (Wellen, Wellenfeld, Kernel-Näherung,
+  Frequenzraum, Entscheidungslandschaft, 3D-Entscheidungsfläche,
+  Epochen-Zeitsequenz, m-Fehlerkurve)
+- Sources/RBFToolkitDemo – Experimente als CLI (pipeline, visuals, cancer):
   Protokoll + Registry, jedes Experiment eine eigene Datei; visuals kennt
-  Einzelschritte (waves field kernel omega boundary surface components)
+  Einzelschritte (waves field kernel omega boundary surface epochs components),
+  cancer ebenfalls (data tune run)
 - Tests/RBFToolkitTests – Korrektheit (Feature-Map gegen CPU-Nachrechnung),
-  Kernel-Näherung (z(x)·z(x') ≈ e^{-gamma||x-x'||²}), Reproduzierbarkeit
-  (gleiche Seeds → identische Gewichte)
+  Kernel-Näherung (z(x)·z(x') ≈ e^-gamma·||x-x'||²), Reproduzierbarkeit
+  (gleiche Seeds → identische Gewichte, fit == fitEpoch), Vorverarbeitung
+  (Standardizer, Split, CSV-Lader)
 - docs/ – Projekt-Aufsatz (essay.md) und Logo (logo.svg)
+- data/ – WDBC-Datensatz (wdbc.data, einmalig per curl geladen, siehe data/)
 
 ## Nutzung
 
 swift run RBFToolkitDemo               # Liste der Experimente
 swift run RBFToolkitDemo pipeline      # Pipeline (schreibt VTK/HTML auf den Desktop)
 swift run RBFToolkitDemo visuals       # alle Visualisierungen
-swift run RBFToolkitDemo visuals omega # nur ein Schritt: waves field kernel omega boundary surface components
+swift run RBFToolkitDemo visuals omega # nur ein Schritt: waves field kernel omega boundary surface epochs components
+swift run RBFToolkitDemo cancer data   # WDBC laden: Zeilen, Klassen, Merkmals-Skalen
+swift run RBFToolkitDemo cancer        # Split → Standardisierung → gamma-Tuning → Test vs. lineare Baseline → m-Sweep
 swift test                             # Test-Suite
 open Package.swift                     # Paket in Xcode öffnen
 
 Voraussetzung: macOS 14+ auf Apple Silicon (MLX braucht Metal).
+
+Der WDBC-Datensatz liegt nicht im Repo. Einmalig im Paket-Root:
+
+```
+mkdir -p data && curl -L -o data/wdbc.data https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data
+```
