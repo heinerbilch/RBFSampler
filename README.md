@@ -25,7 +25,8 @@ auf der GPU läuft.
   Kernel-Näherung (z(x)·z(x') ≈ e^-gamma·||x-x'||²), Reproduzierbarkeit
   (gleiche Seeds → identische Gewichte, fit == fitEpoch), Vorverarbeitung
   (Standardizer, Split, CSV-Lader), PCA (Potenzmethode)
-- docs/ – Projekt-Aufsatz (essay.md) und Logo (logo.svg)
+- docs/ – Projekt-Aufsatz (essay.md), Logo (logo.svg) und
+  Abkürzungswörterbuch (glossary.md)
 - data/ – WDBC-Datensatz (wdbc.data, einmalig per curl geladen, siehe data/)
 
 ## Nutzung
