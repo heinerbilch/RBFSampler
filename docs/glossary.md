@@ -23,6 +23,7 @@ genommen keine Abkürzungen sind, aber ständig auftauchen.
 
 | Abkürzung | Steht für | Bedeutung im Projekt |
 | --- | --- | --- |
+| SV | Support Vector | Deutsch: Stützvektor – die Punkte, die die Marge „stützen“. Beim exakten Solver sind es alle Punkte mit α > 0; bei RFF gibt es keine echten Support-Vektoren, hier sind es die Punkte nahe der Marge (\|f\| ≈ 1, gezählt per Threshold \|f\| ≤ 1.1). |
 | SMO | Sequential Minimal Optimization | Löst das duale QP der exakten Kernel-SVM, indem es immer nur zwei Lagrange-Multiplikatoren gleichzeitig optimiert (jedes 2er-Teilproblem hat eine geschlossene Formel). Der exakte Weg, den dieses Projekt bewusst nicht geht. |
 | QP | Quadratic Programming | Quadratische Optimierung: Zielfunktion quadratisch, Nebenbedingungen linear. Das SVM-Dualproblem ist ein QP. |
 | KKT | Karush-Kuhn-Tucker | Optimalitätsbedingungen für Optimierung mit Nebenbedingungen. SMO stoppt, wenn keine KKT-Verletzung mehr übrig ist. |
